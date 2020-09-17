@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.Toast
@@ -36,9 +37,9 @@ class ProductListActivity : AppCompatActivity() {
         val resolver = contentResolver
         val cursor = resolver.query(uri, projection, selection, selectionArgs, sortOrder)
         while (cursor?.moveToNext() != null) {
-            val fullNameProduct = cursor.getString(cursor.getColumnIndex(fullNameProduct))
-            val aclCodeProduct = cursor.getString(cursor.getColumnIndex(aclCodeProduct))
-            productList.add(fullNameProduct + "\n" + aclCodeProduct)
+            val fullNameProductCursor = cursor.getString(cursor.getColumnIndex(fullNameProduct))
+            val aclCodeProductCursor = cursor.getString(cursor.getColumnIndex(aclCodeProduct))
+            productList.add(fullNameProductCursor + "\n" + aclCodeProductCursor)
         }
         (findViewById<View>(R.id.listProductions) as ListView).adapter = ArrayAdapter(
             this,
@@ -48,20 +49,20 @@ class ProductListActivity : AppCompatActivity() {
     }
 
     private fun setProductText() {
+        listProductions.onItemClickListener =
+            AdapterView.OnItemClickListener { _, _, _, _ ->
+                val uri = Uri.parse("com.skillbox.egais_second_application")
+                val productIntent = Intent(Intent.ACTION_SEND, uri)
+                val intentExtra = Intent.EXTRA_TEXT
+                productIntent.putExtra(intentExtra, "FULL_NAME")
+                productIntent.putExtra(intentExtra, "ALC_CODE")
 
-        listProductions.setOnClickListener {
-            val uri = Uri.parse("com.skillbox.egais_second_application")
-            val productIntent = Intent(Intent.ACTION_SEND, uri)
-            val intentExtra = Intent.EXTRA_TEXT
-            productIntent.putExtra(intentExtra, fullNameProduct)
-            productIntent.putExtra(intentExtra, aclCodeProduct)
-
-            if (productIntent.resolveActivity(packageManager) != null) {
-                startActivity(productIntent)
-            } else {
-                toast("No component to handle intent")
+                if (productIntent.resolveActivity(packageManager) != null) {
+                    startActivity(productIntent)
+                } else {
+                    toast("No component to handle intent")
+                }
             }
-        }
     }
 
     private fun toast(text: String) {
