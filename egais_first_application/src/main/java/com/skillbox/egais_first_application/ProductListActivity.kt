@@ -1,6 +1,7 @@
 package com.skillbox.egais_first_application
 
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -13,6 +14,9 @@ import android.widget.Toast
 import kotlinx.android.synthetic.main.list_productions.*
 import ru.evotor.egais.api.provider.dictionary.ProductInfoContract
 import ru.evotor.egais.api.provider.dictionary.ProductInfoContract.URI
+import rx.Observable
+import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 
 class ProductListActivity : AppCompatActivity() {
 
@@ -27,7 +31,7 @@ class ProductListActivity : AppCompatActivity() {
         setProductText()
     }
 
-    private fun fetchContacts() {
+    private fun fetchContacts(): Observable<Cursor?>? {
         val productList = mutableListOf<String>()
         val uri = URI
         val projection = arrayOf(fullNameProduct, aclCodeProduct)
@@ -36,9 +40,15 @@ class ProductListActivity : AppCompatActivity() {
         val sortOrder: String? = null
         val resolver = contentResolver
         val cursor = resolver.query(uri, projection, selection, selectionArgs, sortOrder)
+        val observable: Observable<Cursor?>? =
+            Observable.just(cursor)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
         while (cursor?.moveToNext() != null) {
-            val fullNameProductCursor = cursor.getString(cursor.getColumnIndex(fullNameProduct))
-            val aclCodeProductCursor = cursor.getString(cursor.getColumnIndex(aclCodeProduct))
+            val fullNameProductCursor =
+                cursor.use { getString(cursor.getColumnIndex(fullNameProduct)) }
+            val aclCodeProductCursor =
+                cursor.use { getString(cursor.getColumnIndex(aclCodeProduct)) }
             productList.add(fullNameProductCursor + "\n" + aclCodeProductCursor)
         }
         (findViewById<View>(R.id.listProductions) as ListView).adapter = ArrayAdapter(
@@ -46,21 +56,22 @@ class ProductListActivity : AppCompatActivity() {
             android.R.layout.simple_list_item_1,
             productList
         )
+
+        return observable
     }
 
     private fun setProductText() {
         listProductions.onItemClickListener =
             AdapterView.OnItemClickListener { _, _, _, _ ->
-                val uri = Uri.parse("com.skillbox.egais_second_application")
+                val uri = Uri.parse(URI_APPLICATION_SECOND)
                 val productIntent = Intent(Intent.ACTION_SEND, uri)
-                val intentExtra = Intent.EXTRA_TEXT
-                productIntent.putExtra(intentExtra, "FULL_NAME")
-                productIntent.putExtra(intentExtra, "ALC_CODE")
+                productIntent.putExtra(FULL_NAME_PRODUCT, "FULL_NAME")
+                productIntent.putExtra(ALC_CODE_PRODUCT, "ALC_CODE")
 
                 if (productIntent.resolveActivity(packageManager) != null) {
                     startActivity(productIntent)
                 } else {
-                    toast("No component to handle intent")
+                    toast(getString(R.string.no_component_intent))
                 }
             }
     }
@@ -69,3 +80,7 @@ class ProductListActivity : AppCompatActivity() {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
     }
 }
+
+const val FULL_NAME_PRODUCT = "fullNameProduct"
+const val ALC_CODE_PRODUCT = "aclCodeProduct"
+const val URI_APPLICATION_SECOND = "com.skillbox.egais_second_application"

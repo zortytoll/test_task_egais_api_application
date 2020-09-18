@@ -1,6 +1,5 @@
 package com.skillbox.egais_second_application
 
-import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_detail_product.*
@@ -15,10 +14,12 @@ class DetailProductActivity : AppCompatActivity() {
     }
 
     private fun setProductParamsFromIntent() {
-        val intentExtra = Intent.EXTRA_TEXT
-        val fullNameProduct = intent.getStringExtra(intentExtra)
-        val alcCodeProduct = intent.getStringExtra(intentExtra)
-        textNameProduct.text = fullNameProduct ?: "full name product is not set"
-        textAlcCodeProduct.text = alcCodeProduct ?: "code product is not set"
+
+        val fullNameProduct = intent.getStringExtra(FULL_NAME_PRODUCT)
+        val alcCodeProduct = intent.getStringExtra(ALC_CODE_PRODUCT)
+        textNameProduct.text = fullNameProduct ?: getString(R.string.error_full_name)
+        textAlcCodeProduct.text = alcCodeProduct ?: getString(R.string.error_code_product)
     }
 }
+const val FULL_NAME_PRODUCT = "fullNameProduct"
+const val ALC_CODE_PRODUCT = "aclCodeProduct"

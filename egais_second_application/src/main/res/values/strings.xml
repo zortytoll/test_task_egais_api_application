@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name_second_app">Egais second application</string>
+    <string name="error_full_name">full name product is not set</string>
+    <string name="error_code_product">code product is not set</string>
 </resources>
