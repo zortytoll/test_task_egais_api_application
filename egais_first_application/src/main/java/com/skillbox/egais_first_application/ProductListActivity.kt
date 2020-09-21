@@ -28,7 +28,6 @@ class ProductListActivity : AppCompatActivity() {
         setContentView(R.layout.list_productions)
 
         fetchContacts()
-        setProductText()
     }
 
     private fun fetchContacts(): Observable<Cursor?>? {
@@ -44,29 +43,18 @@ class ProductListActivity : AppCompatActivity() {
             Observable.just(cursor)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-        while (cursor?.moveToNext() != null) {
-            val fullNameProductCursor =
-                cursor.use { getString(cursor.getColumnIndex(fullNameProduct)) }
-            val aclCodeProductCursor =
-                cursor.use { getString(cursor.getColumnIndex(aclCodeProduct)) }
-            productList.add(fullNameProductCursor + "\n" + aclCodeProductCursor)
-        }
-        (findViewById<View>(R.id.listProductions) as ListView).adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            productList
-        )
-
-        return observable
-    }
-
-    private fun setProductText() {
-        listProductions.onItemClickListener =
-            AdapterView.OnItemClickListener { _, _, _, _ ->
+    while (cursor?.moveToNext() != null) {
+        val fullNameProductCursor =
+            cursor.use { getString(cursor.getColumnIndex(fullNameProduct)) }
+        val aclCodeProductCursor =
+            cursor.use { getString(cursor.getColumnIndex(aclCodeProduct)) }
+        productList.add(fullNameProductCursor + "\n" + aclCodeProductCursor)
+        listProductions.onItemClickListener = AdapterView.OnItemClickListener { l, _, position, _ ->
+            l.getItemAtPosition(position)?.let {
                 val uri = Uri.parse(URI_APPLICATION_SECOND)
                 val productIntent = Intent(Intent.ACTION_SEND, uri)
-                productIntent.putExtra(FULL_NAME_PRODUCT, "FULL_NAME")
-                productIntent.putExtra(ALC_CODE_PRODUCT, "ALC_CODE")
+                productIntent.putExtra(FULL_NAME_PRODUCT, fullNameProductCursor)
+                productIntent.putExtra(ALC_CODE_PRODUCT, aclCodeProductCursor)
 
                 if (productIntent.resolveActivity(packageManager) != null) {
                     startActivity(productIntent)
@@ -74,6 +62,15 @@ class ProductListActivity : AppCompatActivity() {
                     toast(getString(R.string.no_component_intent))
                 }
             }
+        }
+    }
+        (findViewById<View>(R.id.listProductions) as ListView).adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_list_item_1,
+            productList
+        )
+
+        return observable
     }
 
     private fun toast(text: String) {
